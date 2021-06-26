@@ -35,7 +35,7 @@ public class PostController {
         return status(HttpStatus.OK).body(postService.getPost(id));
     }
 
-    @GetMapping("/by-subreddit/{id}")
+    @GetMapping("/by-discussion/{id}")
     public ResponseEntity<List<PostResponse>> getPostsByDiscussion(@PathVariable Long id) {
         return status(HttpStatus.OK).body(postService.getPostsByDiscussion(id));
     }
