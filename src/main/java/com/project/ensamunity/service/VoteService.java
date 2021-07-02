@@ -13,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static com.project.ensamunity.model.VoteType.UPVOTE;
+import static com.project.ensamunity.model.VoteType.*;
+
 @AllArgsConstructor
 @Service
 public class VoteService {
@@ -29,12 +30,39 @@ public class VoteService {
         if (voteByPostAndUser.isPresent() &&
                 voteByPostAndUser.get().getVoteType()
                         .equals(voteDto.getVoteType())) {
-            throw new EnsamunityException("You have already " + voteDto.getVoteType() + "'d for this post");
+            if(UPVOTE.equals(voteDto.getVoteType())) {
+                post.setVoteCount(post.getVoteCount() - 1);
+                voteDto.setVoteType(NOVOTE);
+            }
+            else
+            {
+                post.setVoteCount(post.getVoteCount()  + 1);
+                voteDto.setVoteType(NOVOTE);
+            }
+
+
         }
-        if (UPVOTE.equals(voteDto.getVoteType())) {
-            post.setVoteCount(post.getVoteCount() + 1);
-        } else {
-            post.setVoteCount(post.getVoteCount() - 1);
+        else if(voteByPostAndUser.isPresent() &&
+                !voteByPostAndUser.get().getVoteType()
+                        .equals(voteDto.getVoteType())
+                && (voteByPostAndUser.get().getVoteType().equals(UPVOTE) || voteByPostAndUser.get().getVoteType().equals(DOWNVOTE))
+        )
+        {
+            if(UPVOTE.equals(voteDto.getVoteType())) {
+                post.setVoteCount(post.getVoteCount() + 2);
+            }
+            else
+            {
+                post.setVoteCount(post.getVoteCount()  -2);
+            }
+
+        }
+        else {
+            if (UPVOTE.equals(voteDto.getVoteType())) {
+                post.setVoteCount(post.getVoteCount() + 1);
+            } else {
+                post.setVoteCount(post.getVoteCount() - 1);
+            }
         }
         voteRepository.save(mapToVote(voteDto, post));
         postRepository.save(post);
