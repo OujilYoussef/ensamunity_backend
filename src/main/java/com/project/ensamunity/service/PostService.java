@@ -5,17 +5,19 @@ import com.project.ensamunity.dto.PostRequest;
 import com.project.ensamunity.dto.PostResponse;
 import com.project.ensamunity.exceptions.EnsamunityException;
 import com.project.ensamunity.mapper.PostMapper;
-import com.project.ensamunity.model.Discussion;
-import com.project.ensamunity.model.Post;
-import com.project.ensamunity.model.User;
+import com.project.ensamunity.model.*;
+import com.project.ensamunity.repository.CommentRepository;
 import com.project.ensamunity.repository.DiscussionRepository;
 import com.project.ensamunity.repository.PostRepository;
 import com.project.ensamunity.repository.UserRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -28,6 +30,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final AuthService authService;
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final PostMapper postMapper;
 
     @Transactional
@@ -40,7 +43,9 @@ public class PostService {
     }
     @Transactional(readOnly = true)
     public List<PostResponse> getAllPosts() {
-        return postRepository.findAll()
+
+        recommendations();
+        return postRepository.findAllByOrderByCreatedDateDesc()
                 .stream()
                 .map(postMapper::mapPostToDto)
                 .collect(toList());
@@ -62,4 +67,48 @@ public class PostService {
         User user=userRepository.findByUsername(username).orElseThrow(()->new EnsamunityException(username +" not found"));
         List<Post> posts=postRepository.findAllByUser(user);
         return posts.stream().map(postMapper::mapPostToDto).collect(toList());    }
+
+    private void recommendations() {
+        User currentUser=authService.getCurrentUser();
+
+        List<String> lastInteraction = new ArrayList<>();
+
+        List<Comment> comments = commentRepository.findFirst4ByUserOrderByCreatedDateDesc(currentUser);
+        for (Comment c : comments){
+            lastInteraction.add(c.getPost().getDiscussion().getName());
+        }
+        List<Post> posts = postRepository.findFirst4ByUserOrderByCreatedDateDesc(currentUser);
+        for (Post p : posts){
+            lastInteraction.add(p.getDiscussion().getName());
+        }
+        System.out.println(removeDuplication(lastInteraction));
+        Recommends recommends = new Recommends();
+        recommends.setInterest(removeDuplication(lastInteraction));
+
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        final String uri = "http://127.0.0.1:5000";
+        HttpEntity<Recommends> request = new HttpEntity<>(recommends);
+        Recommends result  = restTemplate.postForObject(uri,request,Recommends.class);
+        System.out.println(result);
+        List<Post> RPosts = new ArrayList<>();
+        for(String s: result.getInterest()){
+            RPosts.addAll(postRepository.findAllByDiscussionName(s));
+        }
+        System.out.println(RPosts);
+    }
+
+
+
+    static List<String> removeDuplication(List<String> directCallList) {
+        HashSet<String> set = new HashSet<>();
+        List<String> returnList = new ArrayList<>();
+        for(String builder : directCallList) {
+            if(set.add(builder))
+                returnList.add(builder);
+        }
+        return returnList;
+    }
+
 }

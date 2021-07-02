@@ -13,6 +13,6 @@ import java.util.List;
 @Repository
 public interface CommentRepository  extends JpaRepository<Comment,Long> {
     List<Comment> findAllByPost(Post post);
-
     List<Comment> findAllByUser(User currentUser);
+    List<Comment> findFirst4ByUserOrderByCreatedDateDesc(User currentUser);
 }
