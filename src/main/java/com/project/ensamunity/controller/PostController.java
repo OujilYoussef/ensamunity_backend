@@ -44,5 +44,7 @@ public class PostController {
     public ResponseEntity<List<PostResponse>> getPostsByUsername(@PathVariable String name) {
         return status(HttpStatus.OK).body(postService.getPostsByUsername(name));
     }
+
+
 }
 

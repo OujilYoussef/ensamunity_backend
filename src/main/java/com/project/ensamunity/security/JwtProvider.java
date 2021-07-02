@@ -14,9 +14,11 @@ import java.io.InputStream;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.time.Instant;
-import java.util.Date;
 
-import static io.jsonwebtoken.Jwts.parser;
+
+
+import static io.jsonwebtoken.Jwts.parserBuilder;
+import static java.util.Date.from;
 
 @Service
 public class JwtProvider {
@@ -35,20 +37,22 @@ private Long jwtExpirationInMillis;
         }
 
     }
-
     public String generateToken(Authentication authentication) {
-        org.springframework.security.core.userdetails.User principal = (User) authentication.getPrincipal();
+        org.springframework.security.core.userdetails.User principal = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
         return Jwts.builder()
                 .setSubject(principal.getUsername())
+                .setIssuedAt(from(Instant.now()))
                 .signWith(getPrivateKey())
-                .setExpiration(Date.from(Instant.now().plusMillis(jwtExpirationInMillis)))
+                .setExpiration(from(Instant.now().plusMillis(jwtExpirationInMillis)))
                 .compact();
     }
+
     public String generateTokenWithUserName(String username) {
         return Jwts.builder()
                 .setSubject(username)
+                .setIssuedAt(from(Instant.now()))
                 .signWith(getPrivateKey())
-                .setExpiration(Date.from(Instant.now().plusMillis(jwtExpirationInMillis)))
+                .setExpiration(from(Instant.now().plusMillis(jwtExpirationInMillis)))
                 .compact();
     }
 
@@ -61,7 +65,7 @@ private Long jwtExpirationInMillis;
     }
 
     public boolean validateToken(String jwt) {
-        parser().setSigningKey(getPublickey()).parseClaimsJws(jwt);
+        parserBuilder().setSigningKey(getPublickey()).build().parseClaimsJws(jwt);
         return true;
     }
 
@@ -69,19 +73,22 @@ private Long jwtExpirationInMillis;
         try {
             return keyStore.getCertificate("ensablog").getPublicKey();
         } catch (KeyStoreException e) {
-            throw new EnsamunityException("Exception occured while retrieving public key from keystore");
+            throw new EnsamunityException("Exception occured while " +
+                    "retrieving public key from keystore");
         }
     }
 
-    public String getUsernameFromJWT(String token) {
-        Claims claims = parser()
+    public String getUsernameFromJwt(String token) {
+        Claims claims = parserBuilder()
                 .setSigningKey(getPublickey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
 
         return claims.getSubject();
     }
-public Long getJwtExpirationInMillis(){
+
+    public Long getJwtExpirationInMillis() {
         return jwtExpirationInMillis;
-}
+    }
 }
