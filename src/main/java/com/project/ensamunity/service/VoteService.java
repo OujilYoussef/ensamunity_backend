@@ -32,13 +32,12 @@ public class VoteService {
                         .equals(voteDto.getVoteType())) {
             if(UPVOTE.equals(voteDto.getVoteType())) {
                 post.setVoteCount(post.getVoteCount() - 1);
-                voteDto.setVoteType(NOVOTE);
             }
             else
             {
                 post.setVoteCount(post.getVoteCount()  + 1);
-                voteDto.setVoteType(NOVOTE);
             }
+            voteDto.setVoteType(NOVOTE);
 
 
         }

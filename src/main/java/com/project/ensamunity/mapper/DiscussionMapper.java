@@ -13,11 +13,13 @@ import java.util.List;
 @Mapper(componentModel =  "spring")
 public interface DiscussionMapper {
     @Mapping(target = "numberOfPosts",expression = "java(mapPosts(discussion.getPosts()))")
+
     DiscussionDto mapDiscussionToDto(Discussion discussion);
 
     default Integer mapPosts(List<Post> posts){return posts.size();}
 
     @InheritInverseConfiguration
+    @Mapping(target = "id",ignore = true)
     @Mapping(target = "posts",ignore = true)
     @Mapping(target = "createdDate",expression ="java(java.time.Instant.now())")
     @Mapping(target = "user",ignore = true)
