@@ -4,9 +4,11 @@ package com.project.ensamunity.mapper;
 import com.project.ensamunity.dto.DiscussionDto;
 import com.project.ensamunity.model.Discussion;
 import com.project.ensamunity.model.Post;
+import com.project.ensamunity.model.User;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+
 
 import java.util.List;
 
@@ -22,8 +24,8 @@ public interface DiscussionMapper {
     @Mapping(target = "id",ignore = true)
     @Mapping(target = "posts",ignore = true)
     @Mapping(target = "createdDate",expression ="java(java.time.Instant.now())")
-    @Mapping(target = "user",ignore = true)
-    Discussion mapDtoToDiscussion(DiscussionDto discussionDto);
+    @Mapping(target = "user",source = "currentUser")
+    Discussion mapDtoToDiscussion(DiscussionDto discussionDto, User currentUser);
 
 }
 
