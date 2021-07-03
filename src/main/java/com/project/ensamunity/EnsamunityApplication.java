@@ -15,4 +15,6 @@ public class EnsamunityApplication {
 		SpringApplication.run(EnsamunityApplication.class, args);
 	}
 
+
+
 }

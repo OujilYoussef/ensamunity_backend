@@ -17,7 +17,7 @@ import static javax.persistence.GenerationType.SEQUENCE;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(uniqueConstraints={@UniqueConstraint(columnNames={"username","email"})})
+@Table(name="users", uniqueConstraints={@UniqueConstraint(columnNames={"username","email"})})
 public class User {
     @Id
     @GeneratedValue(strategy = SEQUENCE)
