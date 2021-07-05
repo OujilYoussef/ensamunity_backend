@@ -24,8 +24,10 @@ import static java.util.Date.from;
 public class JwtProvider {
 
     private KeyStore keyStore;
-@Value("${jwt.expiration.time}")
-private Long jwtExpirationInMillis;
+
+    @Value("${jwt.expiration.time}")
+    private Long jwtExpirationInMillis;
+
     @PostConstruct
     public void init() {
         try {

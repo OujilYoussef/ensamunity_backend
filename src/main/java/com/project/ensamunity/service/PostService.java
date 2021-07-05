@@ -44,11 +44,17 @@ public class PostService {
     @Transactional(readOnly = true)
     public List<PostResponse> getAllPosts() {
 
-        recommendations();
-        return postRepository.findAllByOrderByCreatedDateDesc()
-                .stream()
-                .map(postMapper::mapPostToDto)
-                .collect(toList());
+        List<Post> Posts = recommendations();
+        if(Posts.isEmpty()){
+            return postRepository.findAllByOrderByCreatedDateDesc()
+                    .stream()
+                    .map(postMapper::mapPostToDto)
+                    .collect(toList());
+        }else{
+            return Posts.stream()
+                    .map(postMapper::mapPostToDto)
+                    .collect(toList());
+        }
 
     }
     @Transactional(readOnly = true)
@@ -68,7 +74,7 @@ public class PostService {
         List<Post> posts=postRepository.findAllByUser(user);
         return posts.stream().map(postMapper::mapPostToDto).collect(toList());    }
 
-    private void recommendations() {
+    private List<Post> recommendations() {
         User currentUser=authService.getCurrentUser();
 
         List<String> lastInteraction = new ArrayList<>();
@@ -93,10 +99,11 @@ public class PostService {
         Recommends result  = restTemplate.postForObject(uri,request,Recommends.class);
         System.out.println(result);
         List<Post> RPosts = new ArrayList<>();
+        assert result != null;
         for(String s: result.getInterest()){
             RPosts.addAll(postRepository.findAllByDiscussionName(s));
         }
-        System.out.println(RPosts);
+        return RPosts;
     }
 
 
